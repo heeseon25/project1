@@ -668,6 +668,10 @@ if st.button("분석하기", use_container_width=True):
         template="plotly_white",
         height=420,
         margin=dict(l=20, r=20, t=60, b=30),
+        xaxis=dict(
+            tickmode="linear",
+            dtick=5
+        )
     )
 
     chart_left, chart_right = st.columns(2)
