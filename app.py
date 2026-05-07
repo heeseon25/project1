@@ -11,7 +11,7 @@ import streamlit as st
 # 기본 설정
 # =============================
 st.set_page_config(
-    page_title="미래 물가를 반영한 100세 시대 노후 재무 시뮬레이터",
+    page_title="100세 시대 노후 재무 시뮬레이터",
     page_icon="🌱",
     layout="wide"
 )
@@ -649,26 +649,22 @@ if st.button("분석하기", use_container_width=True):
         margin=dict(l=20, r=20, t=60, b=30),
     )
 
-    # 그래프 2: 생활비와 국민연금은 월 단위 만 원으로 따로 표시
+    # 그래프 2: 생활비에서 국민연금을 제외한 실제 부족분을 표시
+    sim_df["monthly_gap_manwon"] = (sim_df["monthly_living_cost"] - sim_df["monthly_pension"]).clip(lower=0) / 10000
+
     fig_cost = go.Figure()
     fig_cost.add_trace(go.Scatter(
         x=sim_df["age"],
-        y=sim_df["monthly_living_cost_manwon"],
+        y=sim_df["monthly_gap_manwon"],
         mode="lines+markers",
-        name="월 생활비(CPI 반영)",
+        name="월 생활비 부족분",
+        fill="tozeroy",
         line=dict(width=3, color="#d8a48f"),
     ))
-    fig_cost.add_trace(go.Scatter(
-        x=sim_df["age"],
-        y=sim_df["monthly_pension_manwon"],
-        mode="lines+markers",
-        name="월 국민연금",
-        line=dict(width=3, color="#7c83b8", dash="dash"),
-    ))
     fig_cost.update_layout(
-        title="은퇴 이후 월 생활비와 국민연금 비교",
+        title="은퇴 이후 월 생활비 부족분 변화",
         xaxis_title="나이",
-        yaxis_title="월 금액(만 원)",
+        yaxis_title="월 부족 금액(만 원)",
         template="plotly_white",
         height=420,
         margin=dict(l=20, r=20, t=60, b=30),
