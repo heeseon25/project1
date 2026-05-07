@@ -561,7 +561,7 @@ with col_b:
 st.divider()
 
 st.markdown("### 내 노후 재무 시뮬레이션")
-st.markdown("<div class='small-note'>월 저축액은 국민연금을 제외하고 개인적으로 모으는 저축·투자 금액을 의미합니다.</div>", unsafe_allow_html=True)
+st.markdown("<div class='small-note'>월 저축액은 국민연금을 제외하고 개인적으로 모으는 저축 금액을 의미합니다.</div>", unsafe_allow_html=True)
 
 left, right = st.columns(2)
 
@@ -572,7 +572,7 @@ with left:
     current_asset = st.number_input("현재 자산(원)", min_value=0, value=7800000, step=100000)
 
 with right:
-    monthly_saving = st.number_input("개인 월 저축·투자 금액(원)", min_value=0, value=400000, step=100000)
+    monthly_saving = st.number_input("개인 월 저축액(원)", min_value=0, value=400000, step=100000)
     current_monthly_living_cost = st.number_input("현재 월 생활비(원)", min_value=0, value=600000, step=100000)
     contribution_years = st.number_input("국민연금 예상 가입기간(년)", min_value=10, max_value=40, value=30, step=5)
 
@@ -627,30 +627,58 @@ if st.button("분석하기", use_container_width=True):
 
     sim_df = result["sim_df"].copy()
 
+    # 그래프 1: 자산 흐름은 억 원 단위로 표시
+    sim_df["end_asset_eok"] = sim_df["end_asset"] / 100000000
+    sim_df["monthly_living_cost_manwon"] = sim_df["monthly_living_cost"] / 10000
+    sim_df["monthly_pension_manwon"] = sim_df["monthly_pension"] / 10000
+
     fig_asset = go.Figure()
     fig_asset.add_trace(go.Scatter(
         x=sim_df["age"],
-        y=sim_df["end_asset"],
+        y=sim_df["end_asset_eok"],
         mode="lines+markers",
         name="예상 자산",
         line=dict(width=3, color="#6aaa96"),
     ))
-    fig_asset.add_trace(go.Scatter(
-        x=sim_df["age"],
-        y=sim_df["monthly_living_cost"] * 12,
-        mode="lines+markers",
-        name="연간 생활비",
-        line=dict(width=3, color="#d8a48f"),
-    ))
     fig_asset.update_layout(
-        title="은퇴 이후 자산 흐름과 생활비 변화",
+        title="은퇴 이후 예상 자산 흐름",
         xaxis_title="나이",
-        yaxis_title="금액(원)",
+        yaxis_title="자산(억 원)",
         template="plotly_white",
-        height=440,
+        height=420,
         margin=dict(l=20, r=20, t=60, b=30),
     )
-    st.plotly_chart(fig_asset, use_container_width=True)
+
+    # 그래프 2: 생활비와 국민연금은 월 단위 만 원으로 따로 표시
+    fig_cost = go.Figure()
+    fig_cost.add_trace(go.Scatter(
+        x=sim_df["age"],
+        y=sim_df["monthly_living_cost_manwon"],
+        mode="lines+markers",
+        name="월 생활비(CPI 반영)",
+        line=dict(width=3, color="#d8a48f"),
+    ))
+    fig_cost.add_trace(go.Scatter(
+        x=sim_df["age"],
+        y=sim_df["monthly_pension_manwon"],
+        mode="lines+markers",
+        name="월 국민연금",
+        line=dict(width=3, color="#7c83b8", dash="dash"),
+    ))
+    fig_cost.update_layout(
+        title="은퇴 이후 월 생활비와 국민연금 비교",
+        xaxis_title="나이",
+        yaxis_title="월 금액(만 원)",
+        template="plotly_white",
+        height=420,
+        margin=dict(l=20, r=20, t=60, b=30),
+    )
+
+    chart_left, chart_right = st.columns(2)
+    with chart_left:
+        st.plotly_chart(fig_asset, use_container_width=True)
+    with chart_right:
+        st.plotly_chart(fig_cost, use_container_width=True)
 
     st.markdown("### 데이터 기반 인사이트")
     st.markdown(
