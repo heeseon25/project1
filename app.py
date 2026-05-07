@@ -239,24 +239,73 @@ def get_nearest_pension(monthly_income, contribution_years):
 
 
 def get_cpi(year):
-    query = """
-    SELECT year, cpi
-    FROM cpi
-    ORDER BY ABS(year - ?)
-    LIMIT 1;
     """
-    row = load_data(query, (year,)).iloc[0]
+    DB에 해당 연도가 있으면 그 값을 사용하고,
+    2080년 이후처럼 DB 범위를 넘어가면 마지막 두 연도의 증가폭을 이용해 선형 외삽합니다.
+    이렇게 해야 100세 시뮬레이션에서 생활비가 2080년 이후 멈추지 않습니다.
+    """
+    df = load_data("SELECT year, cpi FROM cpi ORDER BY year;")
+
+    exact = df[df["year"] == year]
+    if not exact.empty:
+        row = exact.iloc[0]
+        return int(row["year"]), float(row["cpi"])
+
+    min_year = int(df["year"].min())
+    max_year = int(df["year"].max())
+
+    if year > max_year:
+        last_two = df.tail(2)
+        y1, c1 = int(last_two.iloc[0]["year"]), float(last_two.iloc[0]["cpi"])
+        y2, c2 = int(last_two.iloc[1]["year"]), float(last_two.iloc[1]["cpi"])
+        slope = (c2 - c1) / (y2 - y1)
+        predicted_cpi = c2 + slope * (year - y2)
+        return int(year), float(predicted_cpi)
+
+    if year < min_year:
+        first_two = df.head(2)
+        y1, c1 = int(first_two.iloc[0]["year"]), float(first_two.iloc[0]["cpi"])
+        y2, c2 = int(first_two.iloc[1]["year"]), float(first_two.iloc[1]["cpi"])
+        slope = (c2 - c1) / (y2 - y1)
+        predicted_cpi = c1 - slope * (y1 - year)
+        return int(year), float(predicted_cpi)
+
+    row = df.iloc[(df["year"] - year).abs().argsort()[:1]].iloc[0]
     return int(row["year"]), float(row["cpi"])
 
 
 def get_rate_for_year(year):
-    query = """
-    SELECT year, base_rate
-    FROM ratefull
-    ORDER BY ABS(year - ?)
-    LIMIT 1;
     """
-    row = load_data(query, (year,)).iloc[0]
+    DB에 해당 연도가 있으면 그 값을 사용하고,
+    DB 범위를 넘어가면 마지막 두 연도의 추세를 이용해 선형 외삽합니다.
+    """
+    df = load_data("SELECT year, base_rate FROM ratefull ORDER BY year;")
+
+    exact = df[df["year"] == year]
+    if not exact.empty:
+        row = exact.iloc[0]
+        return int(row["year"]), float(row["base_rate"])
+
+    min_year = int(df["year"].min())
+    max_year = int(df["year"].max())
+
+    if year > max_year:
+        last_two = df.tail(2)
+        y1, r1 = int(last_two.iloc[0]["year"]), float(last_two.iloc[0]["base_rate"])
+        y2, r2 = int(last_two.iloc[1]["year"]), float(last_two.iloc[1]["base_rate"])
+        slope = (r2 - r1) / (y2 - y1)
+        predicted_rate = r2 + slope * (year - y2)
+        return int(year), max(0.0, float(predicted_rate))
+
+    if year < min_year:
+        first_two = df.head(2)
+        y1, r1 = int(first_two.iloc[0]["year"]), float(first_two.iloc[0]["base_rate"])
+        y2, r2 = int(first_two.iloc[1]["year"]), float(first_two.iloc[1]["base_rate"])
+        slope = (r2 - r1) / (y2 - y1)
+        predicted_rate = r1 - slope * (y1 - year)
+        return int(year), max(0.0, float(predicted_rate))
+
+    row = df.iloc[(df["year"] - year).abs().argsort()[:1]].iloc[0]
     return int(row["year"]), float(row["base_rate"])
 
 
@@ -647,6 +696,10 @@ if st.button("분석하기", use_container_width=True):
         template="plotly_white",
         height=420,
         margin=dict(l=20, r=20, t=60, b=30),
+        xaxis=dict(
+            tickmode="linear",
+            dtick=5
+        )
     )
 
     # 그래프 2: 생활비에서 국민연금을 제외한 실제 부족분을 표시
