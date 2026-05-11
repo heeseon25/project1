@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import textwrap
 
 import pandas as pd
 import plotly.express as px
@@ -489,25 +490,24 @@ def make_insight(result, current_monthly_living_cost, retire_age):
     depletion_age = result["depletion_age"]
     depletion_text = "100세 이상" if depletion_age >= 100 else f"{depletion_age}세 전후"
 
-    action_sentence = ""
     if result["saving_effect_years"] > 0:
         action_sentence = f"월 저축액을 20만 원 늘리면 자산 소진 시점을 약 {result['saving_effect_years']}년 늦출 수 있습니다."
     else:
         action_sentence = "월 저축액을 늘리거나 은퇴 시점을 조정하면 100세까지의 준비율을 높일 수 있습니다."
 
     if result["depletion_age"] >= MAX_AGE:
-        depletion_sentence = """
-        현재 자산 흐름 기준으로는 <b>100세까지 생활비 부족분을 비교적 감당할 가능성</b>이 있습니다.<br>
-        자산 소진 예상 시점은 <b>100세 이상</b>입니다.
-        """
+        depletion_sentence = (
+            "현재 자산 흐름 기준으로는 <b>100세까지 생활비 부족분을 비교적 감당할 가능성</b>이 있습니다.<br>"
+            "자산 소진 예상 시점은 <b>100세 이상</b>입니다."
+        )
     else:
-        depletion_sentence = f"""
-        현재 저축 흐름을 유지하면 은퇴 후 약 <b>{result['years_can_cover_after_retire']}년</b> 동안 생활비 부족분을 감당할 수 있습니다.<br>
-        자산 소진 예상 시점은 <b>{depletion_text}</b>입니다.<br>
-        100세까지 생활하려면 추가로 약 <b>{result['years_short']}년치</b> 자금이 부족합니다.
-        """
+        depletion_sentence = (
+            f"현재 저축 흐름을 유지하면 은퇴 후 약 <b>{result['years_can_cover_after_retire']}년</b> 동안 생활비 부족분을 감당할 수 있습니다.<br>"
+            f"자산 소진 예상 시점은 <b>{depletion_text}</b>입니다.<br>"
+            f"100세까지 생활하려면 추가로 약 <b>{result['years_short']}년치</b> 자금이 부족합니다."
+        )
 
-    insight_html = f"""
+    insight_html = textwrap.dedent(f"""
     <div class="insight-step">
         <b>1️⃣ 진단</b><br>
         노후 준비 안정도는 <b>{result['readiness_score']}점 / 100점</b>이며, 현재 준비 수준은 <span class="{text_class}">{status_label}</span> 단계입니다.
@@ -540,7 +540,7 @@ def make_insight(result, current_monthly_living_cost, retire_age):
         <b>물가 상승에 비해 자산 성장 속도가 충분하지 않을 수 있다는 점</b>에서 발생합니다.
         국민연금은 기본 안전망 역할을 하지만, 현재 생활 수준을 유지하려면 개인 저축과 자산 성장 전략을 함께 고려해야 합니다.
     </p>
-    """
+    """).strip()
 
     return status_label, status_class, insight_html
 
@@ -590,7 +590,7 @@ with col_a:
         color_discrete_map={"actual": "#6aaa96", "predicted": "#d8a48f"},
     )
     fig_cpi.update_layout(height=360, template="plotly_white", margin=dict(l=20, r=20, t=60, b=20))
-    st.plotly_chart(fig_cpi, use_container_width=True)
+    st.plotly_chart(fig_cpi, use_container_width=True, theme=None)
     with st.expander("사용된 SQL과 인사이트 보기"):
         st.code(sql_cpi, language="sql")
         st.info("CPI가 상승할수록 같은 생활 수준을 유지하기 위해 필요한 생활비도 증가합니다. 이 데이터는 은퇴 시점뿐 아니라 은퇴 이후 매년 생활비를 보정하는 데 사용됩니다.")
@@ -612,7 +612,7 @@ with col_b:
         color_discrete_map={"actual": "#7c83b8", "predicted": "#c9a227"},
     )
     fig_rate.update_layout(height=360, template="plotly_white", margin=dict(l=20, r=20, t=60, b=20))
-    st.plotly_chart(fig_rate, use_container_width=True)
+    st.plotly_chart(fig_rate, use_container_width=True, theme=None)
     with st.expander("사용된 SQL과 인사이트 보기"):
         st.code(sql_rate, language="sql")
         st.info("기준금리는 자산 성장의 보수적인 기준선으로 활용됩니다. 투자수익률 대신 기준금리를 사용해 개인별 투자 성과 차이를 줄이고 객관적인 시뮬레이션 기준을 만들었습니다.")
@@ -739,25 +739,24 @@ if st.button("분석하기", use_container_width=True):
 
     chart_left, chart_right = st.columns(2)
     with chart_left:
-        st.plotly_chart(fig_asset, use_container_width=True)
+        st.plotly_chart(fig_asset, use_container_width=True, theme=None)
     with chart_right:
-        st.plotly_chart(fig_cost, use_container_width=True)
+        st.plotly_chart(fig_cost, use_container_width=True, theme=None)
 
     st.markdown("### 데이터 기반 인사이트")
-    st.markdown(
-        f"""
-        <div class="insight-box">
-            <h3>진단 → 원인 → 목표 행동</h3>
-            {insight_html}
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p class="small-note">
-                국민연금 조회 시 입력 소득과 가입기간에 가장 가까운 공식 표 값을 사용했습니다.<br>
-                매칭된 기준소득월액: {won(result['matched_income'])}, 매칭된 가입기간: {result['matched_years']}년
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    insight_box_html = textwrap.dedent(f"""
+    <div class="insight-box">
+        <h3>진단 → 원인 → 목표 행동</h3>
+        {insight_html}
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p class="small-note">
+            국민연금 조회 시 입력 소득과 가입기간에 가장 가까운 공식 표 값을 사용했습니다.<br>
+            매칭된 기준소득월액: {won(result['matched_income'])}, 매칭된 가입기간: {result['matched_years']}년
+        </p>
+    </div>
+    """).strip()
+
+    st.markdown(insight_box_html, unsafe_allow_html=True)
 
     with st.expander("시뮬레이션에 사용된 주요 SQL 보기"):
         st.code(
