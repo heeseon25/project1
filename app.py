@@ -191,6 +191,59 @@ st.markdown(
         border-radius: 18px;
         padding: 15px 16px;
     }
+    @media (prefers-color-scheme: dark) {
+
+    .stApp {
+        background: #111827 !important;
+    }
+
+    .hero,
+    .section-card,
+    .metric-card,
+    .score-box,
+    .insight-box,
+    .insight-step {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        color: #f3f4f6 !important;
+    }
+
+    .hero h1,
+    .metric-value,
+    .insight-box h3,
+    .insight-step b {
+        color: #f9fafb !important;
+    }
+
+    .metric-label,
+    .metric-sub,
+    .score-title,
+    .small-note,
+    .hero .subtitle,
+    .tag {
+        color: #d1d5db !important;
+    }
+
+    .tag {
+        background: #374151 !important;
+        border: 1px solid #4b5563 !important;
+    }
+
+    .status-good {
+        background: #14532d !important;
+        color: #bbf7d0 !important;
+    }
+
+    .status-warn {
+        background: #78350f !important;
+        color: #fde68a !important;
+    }
+
+    .status-bad {
+        background: #7f1d1d !important;
+        color: #fecaca !important;
+    }
+}
     </style>
     """,
     unsafe_allow_html=True
