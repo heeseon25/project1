@@ -590,7 +590,7 @@ with col_a:
         color_discrete_map={"actual": "#6aaa96", "predicted": "#d8a48f"},
     )
     fig_cpi.update_layout(height=360, template="plotly_white", margin=dict(l=20, r=20, t=60, b=20))
-    st.plotly_chart(fig_cpi, use_container_width=True, theme=None)
+    st.plotly_chart(fig_cpi, use_container_width=True)
     with st.expander("사용된 SQL과 인사이트 보기"):
         st.code(sql_cpi, language="sql")
         st.info("CPI가 상승할수록 같은 생활 수준을 유지하기 위해 필요한 생활비도 증가합니다. 이 데이터는 은퇴 시점뿐 아니라 은퇴 이후 매년 생활비를 보정하는 데 사용됩니다.")
@@ -612,7 +612,7 @@ with col_b:
         color_discrete_map={"actual": "#7c83b8", "predicted": "#c9a227"},
     )
     fig_rate.update_layout(height=360, template="plotly_white", margin=dict(l=20, r=20, t=60, b=20))
-    st.plotly_chart(fig_rate, use_container_width=True, theme=None)
+    st.plotly_chart(fig_rate, use_container_width=True)
     with st.expander("사용된 SQL과 인사이트 보기"):
         st.code(sql_rate, language="sql")
         st.info("기준금리는 자산 성장의 보수적인 기준선으로 활용됩니다. 투자수익률 대신 기준금리를 사용해 개인별 투자 성과 차이를 줄이고 객관적인 시뮬레이션 기준을 만들었습니다.")
@@ -739,9 +739,9 @@ if st.button("분석하기", use_container_width=True):
 
     chart_left, chart_right = st.columns(2)
     with chart_left:
-        st.plotly_chart(fig_asset, use_container_width=True, theme=None)
+        st.plotly_chart(fig_asset, use_container_width=True)
     with chart_right:
-        st.plotly_chart(fig_cost, use_container_width=True, theme=None)
+        st.plotly_chart(fig_cost, use_container_width=True)
 
     st.markdown("### 데이터 기반 인사이트")
     st.markdown(
