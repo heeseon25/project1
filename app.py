@@ -495,6 +495,18 @@ def make_insight(result, current_monthly_living_cost, retire_age):
     else:
         action_sentence = "월 저축액을 늘리거나 은퇴 시점을 조정하면 100세까지의 준비율을 높일 수 있습니다."
 
+    if result["depletion_age"] >= MAX_AGE:
+        depletion_sentence = """
+        현재 자산 흐름 기준으로는 <b>100세까지 생활비 부족분을 비교적 감당할 가능성</b>이 있습니다.<br>
+        자산 소진 예상 시점은 <b>100세 이상</b>입니다.
+        """
+    else:
+        depletion_sentence = f"""
+        현재 저축 흐름을 유지하면 은퇴 후 약 <b>{result['years_can_cover_after_retire']}년</b> 동안 생활비 부족분을 감당할 수 있습니다.<br>
+        자산 소진 예상 시점은 <b>{depletion_text}</b>입니다.<br>
+        100세까지 생활하려면 추가로 약 <b>{result['years_short']}년치</b> 자금이 부족합니다.
+        """
+
     insight_html = f"""
     <div class="insight-step">
         <b>1️⃣ 진단</b><br>
@@ -512,9 +524,7 @@ def make_insight(result, current_monthly_living_cost, retire_age):
     </div>
     <div class="insight-step">
         <b>4️⃣ 자산 소진 시점</b><br>
-        현재 저축 흐름을 유지하면 은퇴 후 약 <b>{result['years_can_cover_after_retire']}년</b> 동안 생활비 부족분을 감당할 수 있습니다.<br>
-        자산 소진 예상 시점은 <b>{depletion_text}</b>입니다.
-        {f"100세까지 생활하려면 추가로 약 <b>{result['years_short']}년치</b> 자금이 부족합니다." if result['years_short'] > 0 else "100세까지의 생활비 부족분을 비교적 감당할 가능성이 있습니다."}
+        {depletion_sentence}
     </div>
     <div class="insight-step">
         <b>5️⃣ 필요한 목표 성장률</b><br>
